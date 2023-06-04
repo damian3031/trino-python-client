@@ -52,6 +52,8 @@ from trino.exceptions import (
 )
 from trino.transaction import NO_TRANSACTION, IsolationLevel, Transaction
 
+import pyarrow
+from base64 import b64decode
 __all__ = [
     # https://www.python.org/dev/peps/pep-0249/#globals
     "apilevel",
@@ -695,11 +697,28 @@ class Cursor(object):
 
         return list(map(lambda x: DescribeOutput.from_row(x), result))
 
+    def genall_arrow(self):
+        arrow_result = []
+        result = self._query.result
+        for row in result:
+            for chunk in row:
+                out = pyarrow.py_buffer(b64decode(chunk))
+                reader = pyarrow.ipc.open_stream(out)
+                vector_schema_root = reader.read_all()
+                arrow_result.append(vector_schema_root)
+        return arrow_result
+
     def genall(self):
         return self._query.result
 
     def fetchall(self) -> List[List[Any]]:
         return list(self.genall())
+
+    def fetch_arrow_all(self):
+        return pyarrow.concat_tables(self.genall_arrow())
+
+    def fetch_pandas_all(self):
+        return pyarrow.concat_tables(self.genall_arrow()).to_pandas()
 
     def cancel(self):
         if self._query is None:

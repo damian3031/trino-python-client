@@ -456,7 +456,6 @@ class TrinoRequest(object):
         headers[constants.HEADER_SOURCE] = self._client_session.source
         headers[constants.HEADER_USER] = self._client_session.user
         headers[constants.HEADER_TIMEZONE] = self._client_session.timezone
-        headers[constants.HEADER_CLIENT_CAPABILITIES] = 'PARAMETRIC_DATETIME'
         if len(self._client_session.roles.values()):
             headers[constants.HEADER_ROLE] = ",".join(
                 # ``name`` must not contain ``=``
@@ -480,9 +479,9 @@ class TrinoRequest(object):
             )
 
         # merge custom http headers
-        for key in self._client_session.headers:
-            if key in headers.keys():
-                raise ValueError("cannot override reserved HTTP header {}".format(key))
+        # for key in self._client_session.headers:
+        #     if key in headers.keys():
+        #         raise ValueError("cannot override reserved HTTP header {}".format(key))
         headers.update(self._client_session.headers)
 
         transaction_id = self._client_session.transaction_id
@@ -844,7 +843,8 @@ class TrinoQuery(object):
         if not self._row_mapper:
             return []
 
-        return self._row_mapper.map(status.rows)
+        return status.rows
+        # return self._row_mapper.map(status.rows)
 
     def cancel(self) -> None:
         """Cancel the current query"""
