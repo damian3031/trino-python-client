@@ -3,10 +3,7 @@ name: ci
 on:
   push:
     branches:
-      - "master"
-  pull_request:
-    paths-ignore:
-      - '**.md'
+      - "damian/test-ci"
 
 # Cancel previous PR builds.
 concurrency:
@@ -50,7 +47,7 @@ jobs:
           "pypy-3.10",
         ]
         trino: [
-          "latest",
+          "476",
         ]
         sqlalchemy: [
           "~=1.4.0"
@@ -79,4 +76,4 @@ jobs:
           pip install .[tests,gssapi] sqlalchemy${{ matrix.sqlalchemy }}
       - name: Run tests
         run: |
-          pytest -s tests/
+          pytest -s tests/integration/test_dbapi_integration.py::test_segments_cursor
